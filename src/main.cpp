@@ -1,6 +1,5 @@
 #include "../headers/main.h"
 #include <iostream>
-#include <NTL/ZZ.h>
 
 
 using namespace std;
