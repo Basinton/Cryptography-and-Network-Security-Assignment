@@ -110,5 +110,6 @@
         "stacktrace": "cpp",
         "syncstream": "cpp"
     },
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "enabled",
+    "terminal.integrated.fontFamily": "MesloLGS NF"
 }
