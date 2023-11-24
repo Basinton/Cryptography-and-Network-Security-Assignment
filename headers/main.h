@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <NTL/ZZ.h>
-
+#include <cassert>
 
 
 #endif
