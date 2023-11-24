@@ -4,7 +4,8 @@ Cryptography and Network Security - 231
 - Members:
   - Dinh Trong Phuc - 2014156
   - Nguyen Thi My Linh - 2012968
-  - Le Trung Duc - 2012995
+  - Bui Nguyen Gia Huy - 2011253
+  - Le Viet Hung - 1911302
 
 ## Abstract:
 
