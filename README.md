@@ -1,4 +1,16 @@
 # Cryptography-and-Network-Security-Assignment
+Cryptography and Network Security - 231
+
+- Members:
+  - Dinh Trong Phuc - 2014156
+  - Nguyen Thi My Linh - 2012968
+  - Le Trung Duc - 2012995
+
+## Abstract:
+
+In this assignment, we will implement a simple RSA encryption/decryption by C++.
+
+# Cryptography-and-Network-Security-Assignment
 A simple RSA encryption/decryption by C++.
 
 ## Getting Started
