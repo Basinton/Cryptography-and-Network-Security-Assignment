@@ -34,4 +34,7 @@ g++ -g -O2 -std=c++11 -pthread -march=native src/main.cpp -o debug/main -lntl -l
 * Adding NTL library and Miller-Rabin algorithm.
 
 ### Update 2:
-* Adding "Euclide", "Extended Euclide" and "Square and Multiply" Algorithms
+* Adding "Euclide", "Extended Euclide" and "Square and Multiply" algorithms.
+
+### Update 3:
+* Adding "Stein's GCD" & "Binary GCD" algorithms.
