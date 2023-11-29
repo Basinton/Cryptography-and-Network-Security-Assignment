@@ -38,3 +38,9 @@ g++ -g -O2 -std=c++11 -pthread -march=native src/main.cpp -o debug/main -lntl -l
 
 ### Update 3:
 * Adding "Stein's GCD" & "Binary GCD" algorithms.
+
+### Update 4:
+* Adding "Prime number Generaters":
+  1) Generate prime number with given Size.
+  2) Generate prime number with a Key Size and another prime number .
+  ![Testing program](/img/test2.png "2 primes p and q")
