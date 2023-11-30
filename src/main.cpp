@@ -100,6 +100,18 @@ void writeFile(string fileName, string message)
   outfile.close();    // close the output file
 }
 
+void writeFileZZ(string fileName, ZZ message)
+{
+  std::ofstream outfile(fileName); // open the output file
+  if (!outfile)
+  {
+    std::cerr << "\nError opening file." << std::endl;
+    return;
+  }
+  outfile << message; // write the line to the output file
+  outfile.close();    // close the output file
+}
+
 string readFile(string fileName)
 {
   std::ifstream infile(fileName); // open the input file
@@ -117,6 +129,20 @@ string readFile(string fileName)
   infile.close(); // close the input file
   return res;
 }
+
+ZZ readFileZZ(string fileName)
+{
+  std::ifstream infile(fileName); // open the input file
+  if (!infile)
+  {
+    std::cerr << "\nError opening file." << std::endl;
+    return ZZ(-1);
+  }
+  ZZ res;
+  infile >> res;
+  infile.close(); // close the input file
+  return res;
+}
 // File ==========================================================================================
 // ===============================================================================================
 
@@ -128,16 +154,15 @@ class RSA
   ZZ q;
   ZZ e;
   ZZ d;
+  ZZ phi;
 
-  string message_String;
-  ZZ cipher;
-  ZZ message_ZZ;
+  // string message_String;
+  // ZZ cipher;
+  // ZZ message_ZZ;
 
 public:
   // constructor
-  RSA()
-  {
-  }
+  RSA(){}
   RSA(ZZ p, ZZ q)
   {
     this->p = p;
@@ -152,11 +177,6 @@ public:
 
   // destructor
   ~RSA() {}
-
-  void message_StringSetter(string message_String)
-  {
-    this->message_String = message_String;
-  }
 
   // setters
   void pSetter(ZZ p)
@@ -206,14 +226,14 @@ public:
   {
     return this->d;
   }
-  string messageGetter()
-  {
-    return this->message_String;
-  }
-  ZZ cipherGetter()
-  {
-    return this->cipher;
-  }
+  // string messageGetter()
+  // {
+  //   return this->message_String;
+  // }
+  // ZZ cipherGetter()
+  // {
+  //   return this->cipher;
+  // }
 
   // trailing zeros:
   long trailing_zeroes(ZZ number)
@@ -263,6 +283,7 @@ public:
     if (number2 == 0)
       return number1;
 
+    clock_t start = clock();
     long trail1;
     long trail2;
     long min_trail;
@@ -289,6 +310,9 @@ public:
 
       if (number2 == 0)
       {
+        clock_t end = clock();
+        double duration = (end - start) / (double)CLOCKS_PER_SEC;
+        std::cout << "\tTime taken: " << duration << " seconds\n\tResult:";
         return number1 << min_trail;
       }
 
@@ -548,15 +572,21 @@ public:
   {
     this->p = generate_prime_with_bound(this->key_Bits / 2);
     this->q = generate_prime_with_gap(this->p, this->key_Bits);
+    this->n = this->p * this->q;
+    this->phi = (this->p - 1) * (this->q - 1);
+  }
+
+  void n_and_phi_Generate()
+  {
+    this->n = this->p * this->q;
+    this->phi = (this->p - 1) * (this->q - 1);
   }
 
   void e_Generate()
   {
     assert(this->p != NULL && "Invalid p!");
     assert(this->q != NULL && "Invalid q!");
-    ZZ phi;
-    phi = (this->p - 1) * (this->q - 1);
-    this->e = generate_prime(GetBits(phi) / 2);
+    this->e = generate_prime(GetBits(this->phi) / 2);
   }
 
   void e_Generate_with_Size(long _size)
@@ -580,10 +610,10 @@ public:
     bool found = false;
     while (!found)
     {
-      found = extendedEuclid(this->e, phi, this->d);
+      found = extendedEuclid(this->e, this->phi, this->d);
       if (!found)
       {
-        cout << "\ne doen not have an inverted number. Regenerate e ...";
+        cout << "\ne does not have an inverted number. Regenerate e ...";
         e_random_Generate(ZZ(3), phi);
       }
     }
@@ -718,76 +748,246 @@ public:
   // string ========================================================================================
   // ===============================================================================================
 
-  void encryption()
+  void encryption(string fileName = "message/MyMessage.txt", string cipherFile = "cipher/encrypt.enc")
   {
-    ZZ message = String_to_ZZ(this->message_String);
-
-    ZZ n((this->p) * (this->q));
-    this->cipher = (modPow(message, this->e, n));
-
-    string c = ZZ_to_String(this->cipher);
-
-    // writeFile(cipherFile, c);
-    cout << "\n\nMessage after Encryption: " << c;
+    ZZ message = String_to_ZZ(readFile(fileName));
+    ZZ cipher(modPow(message, this->e, this->n));
+    string c = ZZ_to_String(cipher);
+    writeFileZZ(cipherFile, cipher);
+    cout << "\n\nMessage Encryption: " << c;
+    cout << "\n\nCiphertext was written to " << cipherFile << "\n";
   }
 
-  // void encryption(string fileName = "message/MyMessage.txt", string cipherFile = "cipher/encrypt.txt"){
-  //     string mess = readFile(fileName);
-  //     ZZ message = String_to_ZZ(mess);
-
-  //     ZZ n( (this->p)*(this->q) );
-  //     ZZ ci(modPow(message, this->e,n));
-
-  //     string c = ZZ_to_String(ci);
-  //     writeFile(cipherFile, c);
-  //     cout << "\n\nMessage Encryption: " << c;
-  // }
-
-  void decryption()
+  void encryption_5(string message, ZZ e, ZZ n)
   {
-    ZZ n((this->p) * (this->q));
-    ZZ message(modPow(this->cipher, this->d, n));
+    ZZ mess = String_to_ZZ(message);
+
+    ZZ cipher(modPow(mess, e, n));
+    cout << "\n\nMessage Encryption in integer: " << cipher;
+
+    string c = ZZ_to_String(cipher);
+    cout << "\n\nMessage Encryption in string: " << c;
+    cout << "\n";
+  }
+
+  void decryption(string cipherFile = "cipher/encrypt.enc", string decryptFile = "cipher/decrypt.dec")
+  {
+    ZZ cipher(readFileZZ(cipherFile));
+
+    ZZ message(modPow(cipher, this->d, this->n));
 
     string m = ZZ_to_String(message);
-    // writeFile(decryptFile, m);
-    cout << "\n\nMessage after Decryption: " << m;
+    writeFile(decryptFile, m);
+    cout << "\n\nMessage Decryption:\n"
+         << m;
+    cout << "\n\nPlaintext was written to " << decryptFile << "\n";
   }
 
-  // void decryption(string cipherFile = "cipher/encrypt.txt", string decryptFile = "cipher/decrypt.txt"){
-  //     string c = readFile(cipherFile);
-  //     ZZ cipher = String_to_ZZ(c);
-
-  //     ZZ n( (this->p)*(this->q) );
-  //     ZZ message(modPow(cipher, this->d,n));
-
-  //     string m = ZZ_to_String(message);
-  //     writeFile(decryptFile, m);
-  //     cout << "\n\nMessage Decryption: " << m;
-  // }
+  void decryption_6(ZZ cipher, ZZ d, ZZ n)
+  {
+    ZZ message(modPow(cipher, d, n));
+    string m = ZZ_to_String(message);
+    cout << "\n\nMessage Decryption:" << m;
+    cout << "\n";
+  }
 };
+
+void consoleRunning()
+{
+  int option;
+  long num_bits;
+  ZZ p, q, d, n, e, gcd;
+  string plaintext;
+  ZZ ciphertext;
+  clock_t start, end;
+  double duration;
+  RSA a;
+
+  while (true)
+  {
+    // Print the options for the user
+    cout << "--------------------------------------------------------------------------------------------" << endl;
+    cout << "Select an option:" << endl;
+    cout << "\t1. Find the large prime number given the number of bits of the large prime to be found." << endl;
+    cout << "\t2. Calculate the GCD given two large integers." << endl;
+    cout << "\t3. Calculate the decryption key d given the encryption key e and two large primes." << endl;
+    cout << "\t4. Generate random key set given 2 large prime numbers." << endl;
+    cout << "\t5. Encrypt given the message and encryption key e and n." << endl;
+    cout << "\t6. Decrypt given encrypted message and decryption key d and n." << endl;
+    cout << "\t7. Generate d and e randomly with your input as Key bit length." << endl;
+    cout << "\t8. Encryption and Decryption Message with current Pub and Pri Key." << endl;
+    cout << "\t0. Exit" << endl;
+    cout << "--------------------------------------------------------------------------------------------" << endl;
+
+    // Get the user's choice
+
+    cin >> option;
+
+    cout << "\nYour choice is: " << option << endl;
+    cout << "===================================================================================" << endl;
+
+    // Get the user's numbers
+    switch (option)
+    {
+    case 0:
+      cout << "Exited!";
+      exit(0);
+      break;
+
+    case 1:
+      cout << "Enter the large prime number's bits you want: ";
+      cin >> num_bits;
+      // function
+      cout << "The large prime number with " << num_bits << "bits is:\n"
+           << a.generate_prime(num_bits) << endl;
+      cout << "===================================================================================" << endl;
+      break;
+
+    case 2:
+      cout << "Enter the two large integers: \n";
+      cout << "\tNumber 1:";
+      cin >> p;
+      cout << "\tNumber 2:";
+      cin >> q;
+      // function
+      cout << "The GCD found by Euclidean algorithm:\n";
+      start = clock();
+      gcd = a.E_gcd(p, q);
+      end = clock();
+      duration = (end - start) / (double)CLOCKS_PER_SEC;
+      std::cout << "\tTime taken: " << duration << " seconds\n\tResult:" << gcd << endl;
+
+      cout << "The GCD found by Stein's algorithm is:\n";
+      cout << a.S_gcd(p, q) << endl;
+      cout << "===================================================================================" << endl;
+      break;
+
+    case 3:
+      // e
+      cout << "Enter the encryption key e: ";
+      cin >> e;
+      a.eSetter(e);
+
+      // p
+      cout << "Enter the first large prime p: ";
+      cin >> p;
+      a.pSetter(p);
+
+      // q
+      cout << "Enter the second large prime q: ";
+      cin >> q;
+      a.qSetter(q);
+
+      // n and phi(n)
+      a.n_and_phi_Generate();
+
+      // d
+      a.d_Generate();
+
+      cout << "The decryption key d is: " << a.dGetter() << endl;
+      cout << "===================================================================================" << endl;
+      break;
+
+    case 4:
+
+      // p
+      cout << "Enter the first large prime p: ";
+      cin >> p;
+      a.pSetter(p);
+
+      // q
+      cout << "Enter the second large prime q: ";
+      cin >> q;
+      a.qSetter(q);
+
+      // n & phi(n)
+      a.n_and_phi_Generate();
+
+      // e
+      a.e_Generate();
+
+      // d
+      a.d_Generate();
+      // random key function (tinh d), n
+      cout << "The encryption key e is: " << a.eGetter() << endl;
+      cout << "The decryption key d is: " << a.dGetter() << endl;
+      cout << "The modulus n is: " << a.nGetter() << endl;
+      cout << "===================================================================================" << endl;
+      break;
+
+    case 5:
+      // plaintext
+      cout << "Enter the message File name to be encrypted: ";
+      cin >> plaintext;
+      plaintext = readFile(plaintext);
+
+      // e
+      cout << "Enter the encryption key e: ";
+      cin >> e;
+
+      // n
+      cout << "Enter the modulus n: ";
+      cin >> n;
+
+      a.encryption_5(plaintext, e, n);
+
+      cout << "===================================================================================" << endl;
+      break;
+
+    case 6:
+
+      // ciphertext
+      cout << "Enter the encrypted message in integer: ";
+      cin >> ciphertext;
+
+      // d
+      cout << "Enter the decryption key d: ";
+      cin >> d;
+
+      // n
+      cout << "Enter the modulus n: ";
+      cin >> n;
+
+      a.decryption_6(ciphertext, d, n);
+
+      cout << "===================================================================================" << endl;
+      break;
+
+    case 7:
+      cout << "Enter the number of bits of Key: ";
+      cin >> num_bits;
+      a.key_BitsSetter(num_bits);
+      a.p_and_q_Generate();
+      cout << "p: " << a.pGetter() << endl
+           << "p Size: " << a.GetBits(a.pGetter());
+      cout << "\nq: " << a.qGetter() << endl
+           << "q Size: " << a.GetBits(a.qGetter());
+
+      a.e_Generate();
+      cout << "\ne: " << a.eGetter() << endl
+           << "e Size: " << a.GetBits(a.eGetter());
+      a.d_Generate();
+      cout << "\nd: " << a.dGetter() << endl
+           << "d Size: " << a.GetBits(a.dGetter());
+      cout << endl;
+      break;
+
+    case 8:
+      a.encryption();
+      a.decryption();
+      break;
+
+    default:
+      cout << "Invalid option. Please select a valid option." << endl;
+      break;
+    }
+  }
+}
 
 int main()
 {
   SetNumThreads(4); // Number of threads to use for parallelization
 
-  RSA a;
-  a.key_BitsSetter(1024);
-  a.p_and_q_Generate();
-  cout << "p: " << a.pGetter() << endl
-       << "p Size: " << a.GetBits(a.pGetter());
-  cout << "\nq: " << a.qGetter() << endl
-       << "q Size: " << a.GetBits(a.qGetter());
-
-  a.e_Generate();
-  cout << "\ne: " << a.eGetter() << endl
-       << "e Size: " << a.GetBits(a.eGetter());
-  a.d_Generate();
-  cout << "\nd: " << a.dGetter() << endl
-       << "d Size: " << a.GetBits(a.dGetter());
-  a.message_StringSetter(readFile("message/MyMessage.txt"));
-
-  a.encryption();
-  a.decryption();
-
+  consoleRunning();
   return 0;
 }
