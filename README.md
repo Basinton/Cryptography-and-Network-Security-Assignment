@@ -30,7 +30,6 @@ In "NTL Testing" commit, I had pushed a testing NTL library program by C++.
   ```
 - New version: 
   - ```make main```: to compile and run main.cpp and its executed file.
-  - ```make test```: to compile and run testing.cpp and its executed file.
   - ```make clean```: to remove all executed files in debug folder.
 
 ## Update 
